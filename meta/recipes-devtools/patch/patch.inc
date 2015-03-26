@@ -4,7 +4,10 @@ produced by the diff program and applies those differences to one or more \
 original files, producing patched versions."
 SECTION = "utils"
 
-SRC_URI = "${GNU_MIRROR}/patch/patch-${PV}.tar.gz"
+SRC_URI = "${GNU_MIRROR}/patch/patch-${PV}.tar.gz \
+        file://patch-CVE-2015-1196.patch \
+        "
+
 S = "${WORKDIR}/patch-${PV}"
 
 inherit autotools update-alternatives
