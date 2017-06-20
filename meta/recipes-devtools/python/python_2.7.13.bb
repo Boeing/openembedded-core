@@ -1,4 +1,5 @@
 require python.inc
+
 DEPENDS = "python-native libffi bzip2 db gdbm openssl readline sqlite3 zlib"
 PR = "${INC_PR}"
 
@@ -138,11 +139,9 @@ py_package_preprocess () {
     python -m py_compile ${PKGD}/${libdir}/python${PYTHON_MAJMIN}/_sysconfigdata.py
 }
 
-require python-${PYTHON_MAJMIN}-manifest.inc
 
 # manual dependency additions
 RPROVIDES_${PN}-core = "${PN}"
-RRECOMMENDS_${PN}-core = "${PN}-readline"
 RRECOMMENDS_${PN}-core_append_class-nativesdk = " nativesdk-python-modules"
 RRECOMMENDS_${PN}-crypt = "openssl"
 
@@ -169,5 +168,80 @@ do_install_ptest() {
 # catch manpage
 PACKAGES += "${PN}-man"
 FILES_${PN}-man = "${datadir}/man"
-
 BBCLASSEXTEND = "nativesdk"
+
+RPROVIDES_${PN} += "${PN}-modules"
+
+# We want bytecode precompiled .py files (.pyc's) by default
+# but the user may set it on their own conf
+
+INCLUDE_PYCS ?= "1"
+
+python(){
+
+    pythondir = d.getVar('THISDIR',True)
+
+    # Read JSON manifest
+    import json
+    with open(pythondir+'/python/python2-manifest.json') as manifest_file:
+        python_manifest=json.load(manifest_file)
+
+    include_pycs = d.getVar('INCLUDE_PYCS')
+
+    packages = d.getVar('PACKAGES').split()
+    pn = d.getVar('PN')
+
+
+    newpackages=[]
+
+    for key in python_manifest:
+        pypackage= pn + '-' + key
+
+        if pypackage not in packages:
+            # We need to prepend, otherwise python-misc gets everything
+            # so we use a new variable
+            newpackages.append(pypackage)
+
+        # "Build" python's manifest FILES, RDEPENDS and SUMMARY
+        d.setVar('FILES_' + pypackage, '')
+        for value in python_manifest[key]['files']:
+            d.appendVar('FILES_' + pypackage, value + ' ')
+            if include_pycs == '1':
+                if value.endswith('.py'):
+                    d.appendVar('FILES_' + pypackage, value + 'c ')
+
+        d.setVar('RDEPENDS_' + pypackage, '')
+        for value in python_manifest[key]['rdepends']:
+            # Make it work with or without $PN
+            if '${PN}' in value:
+                value=value.split('-')[1]
+            d.appendVar('RDEPENDS_' + pypackage, pn + '-' + value + ' ')
+        d.setVar('SUMMARY_' + pypackage, python_manifest[key]['summary'])
+
+    # We need to ensure staticdev packages match for files first so we sort in reverse
+    newpackages.sort(reverse=True)
+    # Prepending so to avoid python-misc getting everything
+    packages = newpackages + packages
+    d.setVar('PACKAGES', ' '.join(packages))
+    d.setVar('ALLOW_EMPTY_${PN}-modules', '1')
+}
+
+do_split_packages[file-checksums] += "${THISDIR}/python/python2-manifest.json:True"
+
+# Files needed to create a new manifest
+SRC_URI += "file://create_manifest2.py file://get_module_deps2.py file://python2-manifest.json"
+
+do_create_manifest() {
+
+cd ${WORKDIR}
+# This needs to be executed by python-native and NOT by HOST's python
+nativepython create_manifest2.py
+cp python2-manifest.json.new ${THISDIR}/python/python2-manifest.json
+}
+
+# bitbake python -c create_manifest
+addtask do_create_manifest
+
+# Make sure we have native python ready when we create a new manifest
+do_create_manifest[depends] += "python:do_prepare_recipe_sysroot"
+do_create_manifest[depends] += "python:do_patch"
