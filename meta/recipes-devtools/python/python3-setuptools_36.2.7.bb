@@ -23,12 +23,9 @@ RDEPENDS_${PN} = "\
   python3-ctypes \
   python3-distutils \
   python3-email \
-  python3-importlib \
   python3-numbers \
   python3-compression \
   python3-shell \
-  python3-subprocess \
-  python3-textutils \
   python3-pkgutil \
   python3-threading \
   python3-misc \
