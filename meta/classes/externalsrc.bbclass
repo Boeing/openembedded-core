@@ -24,8 +24,21 @@
 # EXTERNALSRC_BUILD_pn-myrecipe = "/path/to/my/source/tree"
 #
 
+def get_symlink_suffix(var, suffixes, d):
+    # Like oe.utils.prune_suffix but return the suffix instead
+    for suffix in suffixes:
+        if var.endswith(suffix):
+            return suffix
+    if var.startswith('nativesdk-'):
+        return '-nativesdk'
+    prefix = d.getVar("MLPREFIX")
+    if prefix and var.startswith(prefix):
+        return '-' + prefix[:-1]
+    return ''
+
 SRCTREECOVEREDTASKS ?= "do_patch do_unpack do_fetch"
-EXTERNALSRC_SYMLINKS ?= "oe-workdir:${WORKDIR} oe-logs:${T}"
+EXTSRC_SUFFIX = "${@get_symlink_suffix(d.getVar('PN'), d.getVar('SPECIAL_PKGSUFFIX').split(), d)}"
+EXTERNALSRC_SYMLINKS ?= "oe-workdir${EXTSRC_SUFFIX}:${WORKDIR} oe-logs${EXTSRC_SUFFIX}:${T}"
 
 python () {
     externalsrc = d.getVar('EXTERNALSRC')
@@ -128,6 +141,7 @@ python () {
             d.setVar('STAMPCLEAN', '${STAMPS_DIR}/work-shared/${PN}/*-*')
 }
 
+externalsrc_configure_prefunc[lockfiles] += " ${S}/conf_prefunc.lock"
 python externalsrc_configure_prefunc() {
     s_dir = d.getVar('S')
     # Create desired symlinks

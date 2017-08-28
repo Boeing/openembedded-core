@@ -500,6 +500,54 @@ class DevtoolTests(DevtoolBase):
         result = runCmd('devtool status')
         self.assertNotIn('mdadm', result.output)
 
+    def test_devtool_modify_configure_prefunc(self):
+        self.write_config("""
+MACHINE = "qemux86-64"
+require conf/multilib.conf
+MULTILIBS = "multilib:lib32"
+DEFAULTTUNE_virtclass-multilib-lib32 = "x86"
+""")
+        self.add_command_to_tearDown('bitbake-layers remove-layer */workspace')
+        self.write_recipeinc('emptytest', '''
+BBCLASSEXTEND = "native nativesdk"
+do_patch[noexec] = "1"
+INHIBIT_DEFAULT_DEPS = "1"
+''')
+        self.track_for_cleanup(self.recipeinc('emptytest'))
+        targets = 'emptytest emptytest-native nativesdk-emptytest lib32-emptytest'
+        self.add_command_to_tearDown('bitbake -c clean ' + targets)
+        tempdir = tempfile.mkdtemp(prefix='devtoolqa')
+        self.track_for_cleanup(tempdir)
+        runCmd('devtool modify emptytest -x %s' % tempdir)
+        self.track_for_cleanup(self.workspacedir)
+        self.append_recipeinc('emptytest', 'EXTERNALSRC_pn-emptytest-native = "%s"\n' % tempdir)
+        self.append_recipeinc('emptytest', 'EXTERNALSRC_pn-nativesdk-emptytest = "%s"\n' % tempdir)
+        self.append_recipeinc('emptytest', 'EXTERNALSRC_pn-lib32-emptytest = "%s"\n' % tempdir)
+        bitbake('-c cleansstate ' + targets)
+        bitbake('-c configure ' + targets)
+
+        def assert_link(linkname, destdir):
+            linkname = os.path.join(tempdir, linkname)
+            self.assertExists(linkname)
+            self.assertTrue(os.path.islink(linkname))
+            dst = os.readlink(linkname)
+            self.assertEqual(dst, destdir)
+
+        bbvars = {'': get_bb_vars(['WORKDIR', 'T'], 'emptytest'),
+                  '-native': get_bb_vars(['WORKDIR', 'T'], 'emptytest-native'),
+                  '-lib32': get_bb_vars(['WORKDIR', 'T'], 'lib32-emptytest'),
+                  '-nativesdk': get_bb_vars(['WORKDIR', 'T'], 'nativesdk-emptytest')}
+        for variant in bbvars:
+            assert_link('oe-logs' + variant, bbvars[variant]['T'])
+            assert_link('oe-workdir' + variant, bbvars[variant]['WORKDIR'])
+
+        with open(os.path.join(tempdir, '.git/info/exclude')) as efile:
+            lines = set(efile.readlines())
+            expected = {'/%s%s\n' % (base, sfx)
+                        for base in ['oe-logs', 'oe-workdir']
+                        for sfx in bbvars}
+            self.assertTrue(expected <= lines)
+
     @OETestID(1620)
     def test_devtool_buildclean(self):
         def assertFile(path, *paths):
