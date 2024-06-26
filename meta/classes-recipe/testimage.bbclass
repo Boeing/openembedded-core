@@ -301,6 +301,7 @@ def testimage_main(d):
     target_kwargs['powercontrol_extra_args'] = d.getVar("TEST_POWERCONTROL_EXTRA_ARGS") or ""
     target_kwargs['serialcontrol_cmd'] = d.getVar("TEST_SERIALCONTROL_CMD") or None
     target_kwargs['serialcontrol_extra_args'] = d.getVar("TEST_SERIALCONTROL_EXTRA_ARGS") or ""
+    target_kwargs['serialcontrol_ps1'] = d.getVar("TEST_SERIALCONTROL_PS1") or None
     target_kwargs['testimage_dump_monitor'] = d.getVar("testimage_dump_monitor") or ""
 
     def export_ssh_agent(d):
