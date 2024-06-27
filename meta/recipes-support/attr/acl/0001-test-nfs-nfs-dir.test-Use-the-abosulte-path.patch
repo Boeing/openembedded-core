@@ -1,0 +1,46 @@
+From e87562e4e03450e380bd1ce8e11c561e8f9653d2 Mon Sep 17 00:00:00 2001
+From: Mingli Yu <mingli.yu@windriver.com>
+Date: Mon, 17 Jun 2024 11:22:21 +0800
+Subject: [PATCH] test/nfs/nfs-dir.test: Use the abosulte path
+
+Use the abosulte path otherwise we won't find the expected file blah.
+
+Upstream-Status: Submitted [https://lists.nongnu.org/archive/html/acl-devel/2024-06/msg00001.html]
+
+Signed-off-by: Mingli Yu <mingli.yu@windriver.com>
+---
+ test/nfs/nfs-dir.test | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/test/nfs/nfs-dir.test b/test/nfs/nfs-dir.test
+index 33e5f5f..7216a6e 100644
+--- a/test/nfs/nfs-dir.test
++++ b/test/nfs/nfs-dir.test
+@@ -14,7 +14,7 @@ EXPORT_PATH => the path that is mounted at the working directory.
+ 	Make sure the file can be accessed before.
+ 
+ 	$ su bin
+-	$ cat test/blah
++	$ cat %{EXPORT_PATH}/test/blah
+ 	> blah
+ 
+ 	Set up a situation that triggers the bug.
+@@ -36,12 +36,12 @@ EXPORT_PATH => the path that is mounted at the working directory.
+ 	fail with "Stale NFS file handle" or "Input/output error".
+ 
+ 	$ su bin
+-	$ cat test/blah
++	$ cat %{EXPORT_PATH}/test/blah
+ 	> blah
+ 	$ sleep 3
+-	$ cat test/blah
++	$ cat %{EXPORT_PATH}/test/blah
+ 	> blah
+-	$ cat test/blah
++	$ cat %{EXPORT_PATH}/test/blah
+ 	> blah
+ 
+ 	Clean up.
+-- 
+2.34.1
+

@@ -19,6 +19,9 @@ SRC_URI = "${SAVANNAH_GNU_MIRROR}/acl/${BP}.tar.gz \
            file://run-ptest \
            file://0001-tests-do-not-hardcode-the-build-path-into-a-helper-l.patch \
            file://0001-test-patch-out-failing-bits.patch \
+           file://0001-test-nfs-nfsacl.test-Correct-the-check-item.patch \
+           file://0001-test-nfs-nfs-dir.test-Use-the-abosulte-path.patch \
+           file://0001-tests-fix-getpwnam-and-getgrnam.patch \
            "
 
 SRC_URI[sha256sum] = "5f2bdbad629707aa7d85c623f994aa8a1d2dec55a73de5205bac0bf6058a2f7c"
@@ -65,6 +68,7 @@ do_install_ptest:append:libc-musl() {
 }
 
 RDEPENDS:${PN}-ptest = "acl \
+                        attr \
                         bash \
                         coreutils \
                         perl \

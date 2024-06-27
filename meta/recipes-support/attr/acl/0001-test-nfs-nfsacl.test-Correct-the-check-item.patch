@@ -1,0 +1,51 @@
+From dfc6328f02821f9c6703f764ec6f53cf81daaab6 Mon Sep 17 00:00:00 2001
+From: Mingli Yu <mingli.yu@windriver.com>
+Date: Mon, 17 Jun 2024 11:00:43 +0800
+Subject: [PATCH] test/nfs/nfsacl.test: Correct the check item
+
+The date such as "Jun 13" should take 2 columns, so the expected check
+item "test/sub2" should the column 9.
+ # ls test/sub2 -dl
+drwxr-xr-x 2 root root 4096 Jun 13 06:01 test/sub2
+
+Upstream-Status: Submitted [https://lists.nongnu.org/archive/html/acl-devel/2024-06/msg00002.html]
+
+Signed-off-by: Mingli Yu <mingli.yu@windriver.com>
+---
+ test/nfs/nfsacl.test | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/test/nfs/nfsacl.test b/test/nfs/nfsacl.test
+index 4f37322..dfcc323 100644
+--- a/test/nfs/nfsacl.test
++++ b/test/nfs/nfsacl.test
+@@ -8,7 +8,7 @@ The test should be run on an NFS export mount with ACL support.
+ 	$ echo blah > test/sub/blah
+ 
+ 	$ cp -rp test/sub test/sub2
+-	$ find test/sub2 | sort | xargs ls -dl | awk '{print $1,$8}'
++	$ find test/sub2 | sort | xargs ls -dl | awk '{print $1,$9}'
+ 	> drwxr-xr-x test/sub2
+ 	> -rw-r--r-- test/sub2/blah
+ 
+@@ -23,7 +23,7 @@ The test should be run on an NFS export mount with ACL support.
+ 	>
+ 
+ 	$ cp -rp test/sub test/sub2
+-	$ find test/sub2 | sort | xargs ls -dl | awk '{print $1,$8}'
++	$ find test/sub2 | sort | xargs ls -dl | awk '{print $1,$9}'
+ 	> drwxrwxr-x+ test/sub2
+ 	> -rw-r--r-- test/sub2/blah
+ 
+@@ -31,7 +31,7 @@ The test should be run on an NFS export mount with ACL support.
+ 
+ 	$ setfacl -m u:daemon:rw test/sub/blah
+ 	$ cp -rp test/sub test/sub2
+-	$ find test/sub2 | sort | xargs ls -dl | awk '{print $1,$8}'
++	$ find test/sub2 | sort | xargs ls -dl | awk '{print $1,$9}'
+ 	> drwxrwxr-x+ test/sub2
+ 	> -rw-rw-r--+ test/sub2/blah
+ 
+-- 
+2.34.1
+

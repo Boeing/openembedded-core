@@ -1,0 +1,67 @@
+From 6398d3fe7a766b4e3cd15bb77fd0f15f7dba52b2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Luk=C3=A1=C5=A1=20Zaoral?= <lzaoral@redhat.com>
+Date: Wed, 19 Jun 2024 11:11:30 +0800
+Subject: [PATCH] tests: fix getpwnam and getgrnam
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The calls to these functions would always fail because the size of the buffer
+was smaller than the minimum (170000) specified in the test implementations
+of getgrnam_r and getpwnam_r.  Use test_get*_match directly because getpwnam
+and getgrnam should never fail on ERANGE.
+
+This commit fixes the following failure in the test/root/restore.test test:
+
+[21] $ chown bin passwd -- failed
+chown: invalid user: ‘bin’        != ~
+
+Fixes: 3737f000d3f17cd283f51eeacac21a71a3472053 ("use thread-safe getpwnam_r
+and getgrnam_r")
+
+Upstream-Status: Submitted [https://lists.nongnu.org/archive/html/acl-devel/2024-06/msg00000.html]
+
+Signed-off-by: Mingli Yu <mingli.yu@windriver.com>
+---
+ test/test_group.c  | 2 +-
+ test/test_passwd.c | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/test/test_group.c b/test/test_group.c
+index 96dd612..42d6b07 100644
+--- a/test/test_group.c
++++ b/test/test_group.c
+@@ -136,7 +136,7 @@ struct group *getgrnam(const char *name)
+ 	static struct group grp;
+ 	struct group *result;
+ 
+-	(void) getgrnam_r(name, &grp, buf, sizeof(buf), &result);
++	(void) test_getgr_match(&grp, buf, sizeof buf, &result, match_name, name);
+ 	return result;
+ }
+ 
+diff --git a/test/test_passwd.c b/test/test_passwd.c
+index 9428bf8..97f2673 100644
+--- a/test/test_passwd.c
++++ b/test/test_passwd.c
+@@ -119,7 +119,7 @@ int getpwnam_r(const char *name, struct passwd *pwd, char *buf, size_t buflen,
+ 		*result = NULL;
+ 		return ERANGE;
+ 	}
+-	last_buflen =- 1;
++	last_buflen = -1;
+ 
+ 	return test_getpw_match(pwd, buf, buflen, result, match_name, name);
+ }
+@@ -131,7 +131,7 @@ struct passwd *getpwnam(const char *name)
+ 	static struct passwd pwd;
+ 	struct passwd *result;
+ 
+-	(void) getpwnam_r(name, &pwd, buf, sizeof(buf), &result);
++	(void) test_getpw_match(&pwd, buf, sizeof(buf), &result, match_name, name);
+ 	return result;
+ }
+ 
+-- 
+2.34.1
+
