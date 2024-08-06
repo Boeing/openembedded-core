@@ -164,8 +164,7 @@ class OESSHTarget(OETarget):
                 tmpDir = d.replace(remoteSrc, "")
                 newDir = os.path.join(localDst, tmpDir.lstrip("/"))
                 os.makedirs(newDir)
-                
-                
+
                 # copy over files
                 cmd = f"find {d} -type f"
                 (status, output) = self.run(cmd)
