@@ -144,6 +144,35 @@ class OESSHTarget(OETarget):
                 srcFile = os.path.join(root, f)
                 self.copyTo(srcFile, dstFile)
 
+    def copyDirFrom(self, remoteSrc, localDst):
+        """
+            Copy recursively remoteSrc directory to localDst from target.
+        """
+
+        # find all remoteSrc sub-dirs
+        cmd = f"find {remoteSrc} -mindepth 1 -type d"
+        (status, output) = self.run(cmd)
+
+        # check if remoteSrc was found
+        if 'find:' in output:
+            return (status, output)
+        else:
+            dirs = output.split('\n')
+
+            # create local dirs
+            for d in dirs:
+                tmpDir = d.replace(remoteSrc, "")
+                newDir = os.path.join(localDst, tmpDir.lstrip("/"))
+                os.makedirs(newDir)
+                
+                
+                # copy over files
+                cmd = f"find {d} -type f"
+                (status, output) = self.run(cmd)
+                files = output.split('\n')
+                for file in files:
+                    self.copyFrom(file, newDir)
+
     def deleteFiles(self, remotePath, files):
         """
             Deletes files in target's remotePath.
