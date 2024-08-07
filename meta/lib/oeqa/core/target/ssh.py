@@ -150,27 +150,34 @@ class OESSHTarget(OETarget):
         """
 
         # find all remoteSrc sub-dirs
-        cmd = f"find {remoteSrc} -mindepth 1 -type d"
+        cmd = "find %s -type d" % remoteSrc
         (status, output) = self.run(cmd)
 
         # check if remoteSrc was found
         if 'find:' in output:
+            self.logger.warning("Directory %s was not found on target." % remoteSrc)
             return (status, output)
         else:
             dirs = output.split('\n')
 
             # create local dirs
             for d in dirs:
-                tmpDir = d.replace(remoteSrc, "")
-                newDir = os.path.join(localDst, tmpDir.lstrip("/"))
+                newDir = os.path.join(localDst, d.lstrip("/"))
+
+                # check if directory already exists on local machine
+                if os.path.isdir(newDir):
+                    self.logger.warning("Directory %s was not copied. Directory already exists." % newDir)
+                    break
+
                 os.makedirs(newDir)
 
                 # copy over files
-                cmd = f"find {d} -type f"
+                cmd = "find %s -maxdepth 1 -type f" % d
                 (status, output) = self.run(cmd)
-                files = output.split('\n')
-                for file in files:
-                    self.copyFrom(file, newDir)
+                if output:
+                    files = output.split('\n')
+                    for file in files:
+                        self.copyFrom(file, newDir, True)
 
     def deleteFiles(self, remotePath, files):
         """
