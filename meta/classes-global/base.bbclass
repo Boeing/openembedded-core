@@ -542,6 +542,24 @@ python () {
         d.setVarFlag('do_devshell', 'fakeroot', '1')
         d.appendVarFlag('do_devshell', 'depends', ' virtual/fakeroot-native:do_populate_sysroot')
 
+    # Horrible duplication with allarch as we need to set this before expanding DEPENDS below.
+    if d.getVar("PACKAGE_ARCH") == "all":
+        d.setVar("INHIBIT_DEFAULT_DEPS", "1")
+
+    # Handle recipe level PREFERRED_PROVIDERs
+    depends = (d.getVar("DEPENDS") or "").split()
+    virtprovs = (d.getVar("RECIPE_VIRTUAL_PROVIDERS") or "").split()
+    newdeps = []
+    for dep in depends:
+        if dep in virtprovs:
+            newdep = d.getVar("PREFERRED_PROVIDER_" + dep)
+            if not newdep:
+                 bb.fatal("Error, recipe virtual provider PREFERRED_PROVIDER_%s not set" % dep)
+            newdeps.append(newdep)
+        else:
+            newdeps.append(dep)
+    d.setVar("DEPENDS", " ".join(newdeps))
+
     need_machine = d.getVar('COMPATIBLE_MACHINE')
     if need_machine and not bb.utils.to_boolean(d.getVar('PARSE_ALL_RECIPES', False)):
         import re

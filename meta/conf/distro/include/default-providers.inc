@@ -1,6 +1,7 @@
 #
 # Default virtual providers
 #
+RECIPE_VIRTUAL_PROVIDERS = "virtual/cross-cc virtual/cross-c++ virtual/cross-binutils virtual/cross-sdk-cc virtual/cross-sdk-c++ virtual/cross-sdk-binutils"
 PREFERRED_PROVIDER_virtual/xserver ?= "xserver-xorg"
 PREFERRED_PROVIDER_virtual/xserver-xf86 ?= "xserver-xorg"
 PREFERRED_PROVIDER_virtual/egl ?= "mesa"
