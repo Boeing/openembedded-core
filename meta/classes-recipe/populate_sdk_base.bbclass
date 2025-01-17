@@ -200,7 +200,14 @@ create_merged_usr_symlinks_sdk() {
     create_merged_usr_symlinks ${SDK_OUTPUT}${SDKTARGETSYSROOT}
 }
 
-POPULATE_SDK_PRE_TARGET_COMMAND += "${@bb.utils.contains('DISTRO_FEATURES', 'usrmerge', 'create_merged_usr_symlinks_sdk', '',d)}"
+create_merged_usr_symlinks_nativesdk() {
+    create_merged_usr_symlinks ${SDK_OUTPUT}${SDKPATHNATIVE}
+}
+
+POPULATE_SDK_PRE_TARGET_COMMAND += " \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'usrmerge', 'create_merged_usr_symlinks_sdk', '',d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES_NATIVESDK', 'usrmerge', 'create_merged_usr_symlinks_nativesdk', '',d)} \
+"
 
 SDK_PACKAGING_COMMAND = "${@'${SDK_PACKAGING_FUNC}' if '${SDK_PACKAGING_FUNC}' else ''}"
 SDK_POSTPROCESS_COMMAND = "create_sdk_files check_sdk_sysroots archive_sdk ${SDK_PACKAGING_COMMAND}"
