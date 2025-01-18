@@ -780,6 +780,43 @@ def sanity_check_locale(d):
     except locale.Error:
         raise_sanity_error("Your system needs to support the en_US.UTF-8 locale.", d)
 
+def check_c_toolchain(d):
+    """
+    it checks if the c compiling and linking to libstdc++ works properly in the native system
+    """
+    import os
+    import subprocess
+    from tempfile import NamedTemporaryFile
+
+    try:
+        with NamedTemporaryFile(delete=False, suffix=".c") as c_file:
+            c_code = """
+            #include <stdio.h>
+            int main() {
+                printf(\"Hello, World!\\n\");
+                return 0;
+            }
+            """
+            c_file.write(c_code.encode('utf-8'))
+            c_file_name = c_file.name
+
+        build_cc = d.getVar('BUILD_CC').strip()
+        output_binary = c_file_name + ".out"
+        compile_command = [build_cc, c_file_name, '-o', output_binary,'-lstdc++']
+        result = subprocess.run(compile_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if result.returncode == 0:
+            return None
+        else:
+            return f"C toolchain check failed to link against libstdc++. Please ensure libstdc++ and headers are installed. Error:\n{result.stderr.decode()}"
+    except Exception as e:
+        return f"An unexpected issue occurred during the C toolchain check: {str(e)}"
+    finally:
+        if c_file_name and os.path.exists(c_file_name):
+            os.remove(c_file_name)
+        if output_binary and os.path.exists(output_binary):
+            os.remove(output_binary)
+
 def check_sanity_everybuild(status, d):
     import os, stat
     # Sanity tests which test the users environment so need to run at each build (or are so cheap
@@ -975,6 +1012,9 @@ def check_sanity_everybuild(status, d):
         # forms, such as /bin/dash, bin/bash, /bin/bash.bash ...
         if '/dash' not in real_sh and '/bash' not in real_sh:
             status.addresult("Error, /bin/sh links to %s, must be dash or bash\n" % real_sh)
+
+    # Check if linking with lstdc++ is failing
+    status.addresult(check_c_toolchain(d))
 
 def check_sanity(sanity_data):
     class SanityStatus(object):
