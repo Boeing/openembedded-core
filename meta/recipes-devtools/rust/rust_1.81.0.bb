@@ -271,6 +271,7 @@ rust_do_install:class-nativesdk() {
     rm ${D}${libdir}/rustlib/install.log
     rm ${D}${libdir}/rustlib/manifest*
     rm ${D}${libdir}/rustlib/${RUST_HOST_SYS}/lib/libstd*.so
+    rm ${D}${libdir}/rustlib/${RUST_HOST_SYS}/lib/libstd-*.rlib
 
     ENV_SETUP_DIR=${D}${base_prefix}/environment-setup.d
     mkdir "${ENV_SETUP_DIR}"
@@ -309,6 +310,7 @@ rust_do_install:class-target() {
     rm ${D}${libdir}/rustlib/install.log
     rm ${D}${libdir}/rustlib/manifest*
     rm ${D}${libdir}/rustlib/${RUST_HOST_SYS}/lib/libstd*.so
+    rm ${D}${libdir}/rustlib/${RUST_HOST_SYS}/lib/libstd-*.rlib
 }
 
 addtask do_update_snapshot after do_patch
