@@ -60,6 +60,7 @@ EXTRA_OECONF = "--with-statduser=rpcuser \
                 --disable-nfsdcltrack \
                 --with-statdpath=/var/lib/nfs/statd \
                 --with-rpcgen=${HOSTTOOLS_DIR}/rpcgen \
+                --disable-sbin-override \
                "
 
 LDFLAGS += "-lsqlite3 -levent"
@@ -106,11 +107,6 @@ RDEPENDS:${PN}-rpcctl = "python3-core"
 FILES:${PN}-staticdev += "${libdir}/libnfsidmap/*.a"
 
 FILES:${PN} += "${systemd_unitdir} ${libdir}/libnfsidmap/ ${nonarch_libdir}/modprobe.d"
-
-do_configure:prepend() {
-	sed -i -e 's,sbindir = /sbin,sbindir = ${base_sbindir},g' \
-		${S}/utils/mount/Makefile.am
-}
 
 # Make clean needed because the package comes with
 # precompiled 64-bit objects that break the build
