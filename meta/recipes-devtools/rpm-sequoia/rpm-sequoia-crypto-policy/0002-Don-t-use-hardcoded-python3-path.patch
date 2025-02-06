@@ -1,0 +1,41 @@
+From 47e70118dbd491a2aaf5669dc93e3f1471d19510 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Zolt=C3=A1n=20B=C3=B6sz=C3=B6rm=C3=A9nyi?=
+ <zboszor@gmail.com>
+Date: Thu, 6 Feb 2025 12:00:36 +0100
+Subject: [PATCH 2/2] Don't use hardcoded python3 path
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This can help with cross-compiling.
+
+Signed-off-by: Zoltán Böszörményi <zboszor@gmail.com>
+Upstream-Status: Submitted [https://gitlab.com/redhat-crypto/fedora-crypto-policies/-/merge_requests/226]
+---
+ python/build-crypto-policies.py  | 2 +-
+ python/update-crypto-policies.py | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/python/build-crypto-policies.py b/python/build-crypto-policies.py
+index a08ece2..a75b6f6 100755
+--- a/python/build-crypto-policies.py
++++ b/python/build-crypto-policies.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python3
++#!/usr/bin/env python3
+ 
+ # SPDX-License-Identifier: LGPL-2.1-or-later
+ 
+diff --git a/python/update-crypto-policies.py b/python/update-crypto-policies.py
+index 97487dc..935bc9e 100755
+--- a/python/update-crypto-policies.py
++++ b/python/update-crypto-policies.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python3
++#!/usr/bin/env python3
+ 
+ # SPDX-License-Identifier: LGPL-2.1-or-later
+ 
+-- 
+2.48.1
+

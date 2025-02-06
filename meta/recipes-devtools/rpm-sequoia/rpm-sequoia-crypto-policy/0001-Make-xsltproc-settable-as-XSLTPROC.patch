@@ -1,0 +1,43 @@
+From f4adfb74c1f13cbddcbc20b6aa6aebe58956083e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Zolt=C3=A1n=20B=C3=B6sz=C3=B6rm=C3=A9nyi?=
+ <zboszor@gmail.com>
+Date: Thu, 6 Feb 2025 12:20:09 +0100
+Subject: [PATCH 1/2] Make xsltproc settable as XSLTPROC
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This allows not building the documentation with:
+
+  make ASCIIDOC=echo XSLTPROC=echo
+
+Signed-off-by: Zoltán Böszörményi <zboszor@gmail.com>
+Upstream-Status: Submitted [https://gitlab.com/redhat-crypto/fedora-crypto-policies/-/merge_requests/226]
+---
+ Makefile | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 9d2b5c7..36b3702 100644
+--- a/Makefile
++++ b/Makefile
+@@ -15,6 +15,7 @@ NUM_PROCS = $$(getconf _NPROCESSORS_ONLN)
+ PYVERSION = -3
+ DIFFTOOL?=meld
+ ASCIIDOC?=asciidoc
++XSLTPROC?=xsltproc
+ ifneq ("$(wildcard /usr/lib/python*/*/asciidoc/resources/docbook-xsl/manpage.xsl)","")
+ MANPAGEXSL?=$(wildcard /usr/lib/python*/*/asciidoc/resources/docbook-xsl/manpage.xsl)
+ else
+@@ -134,7 +135,7 @@ clean:
+ 
+ %: %.txt
+ 	$(ASCIIDOC) -v -d manpage -b docbook $<
+-	xsltproc --nonet -o $@ ${MANPAGEXSL} $@.xml
++	$(XSLTPROC) --nonet -o $@ ${MANPAGEXSL} $@.xml
+ 
+ dist:
+ 	rm -rf crypto-policies && git clone . crypto-policies && rm -rf crypto-policies/.git/ && tar -czf crypto-policies-git$(VERSION).tar.gz crypto-policies && rm -rf crypto-policies
+-- 
+2.48.1
+
